@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Tiệm hoa Chow</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="config.js"></script>
+<style>
+  :root {
+    --bg: var(--tg-theme-secondary-bg-color, #f2f1f6);
+    --card: var(--tg-theme-section-bg-color, var(--tg-theme-bg-color, #ffffff));
+    --text: var(--tg-theme-text-color, #1c1c1e);
+    --hint: var(--tg-theme-hint-color, #8e8e93);
+    --accent: var(--tg-theme-button-color, #a8385f);
+    --accent-text: var(--tg-theme-button-text-color, #ffffff);
+    --link: var(--tg-theme-link-color, #a8385f);
+    --danger: var(--tg-theme-destructive-text-color, #d93a3a);
+    --warn: #c77700;
+    --line: rgba(127, 127, 127, .18);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 16px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; padding: 12px 12px calc(96px + env(safe-area-inset-bottom)); }
+  button, input, textarea { font: inherit; color: inherit; }
+  h1 { font-size: 22px; margin: 4px 4px 2px; }
+  .sub { color: var(--hint); font-size: 14px; margin: 0 4px 14px; }
+  .hidden { display: none !important; }
+  .card { background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .grow { flex: 1; min-width: 0; }
+  .muted { color: var(--hint); font-size: 14px; }
+  .small { font-size: 13px; }
+  .label { font-size: 13px; color: var(--hint); margin: 12px 0 6px; text-transform: uppercase; letter-spacing: .02em; }
+
+  /* Trang chủ */
+  .menu-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; border: 0; background: var(--card); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; min-height: 64px; }
+  .menu-item .ico { font-size: 26px; width: 36px; text-align: center; }
+  .menu-item .t { font-weight: 600; }
+  .menu-item[disabled] { opacity: .5; }
+  .pill { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: var(--line); color: var(--hint); white-space: nowrap; }
+
+  /* Dòng điều chỉnh */
+  .line-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .line-no { font-size: 13px; color: var(--hint); font-weight: 600; }
+  .icon-btn { border: 0; background: transparent; color: var(--hint); font-size: 20px; width: 40px; height: 40px; border-radius: 10px; }
+  .pick { width: 100%; text-align: left; border: 1px solid var(--line); background: transparent; border-radius: 12px; padding: 12px; min-height: 52px; }
+  .pick .name { font-weight: 600; }
+  .pick.empty .name { color: var(--link); font-weight: 500; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--line); background: transparent; border-radius: 99px; padding: 8px 14px; min-height: 40px; font-size: 15px; }
+  .chip.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .chip.minus.on { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .stepper button { width: 48px; height: 48px; border: 0; background: transparent; font-size: 24px; color: var(--accent); }
+  .stepper input { width: 72px; height: 48px; border: 0; text-align: center; background: transparent; font-size: 18px; font-weight: 600; outline: none; }
+  .unit { color: var(--hint); }
+  .after { font-size: 14px; margin-top: 10px; padding: 8px 10px; border-radius: 10px; background: var(--line); }
+  .after.bad { background: rgba(217, 58, 58, .12); color: var(--danger); }
+  .after.low { background: rgba(199, 119, 0, .12); color: var(--warn); }
+  .note { width: 100%; border: 1px solid var(--line); background: transparent; border-radius: 12px; padding: 12px; min-height: 46px; outline: none; }
+  .note.need { border-color: var(--danger); }
+  .add { width: 100%; border: 1px dashed var(--line); background: transparent; color: var(--link); border-radius: var(--radius); padding: 14px; min-height: 52px; font-weight: 600; }
+  .tip { font-size: 13px; color: var(--hint); padding: 0 4px; }
+
+  /* Thanh lỗi / thông báo */
+  .banner { border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; font-size: 15px; }
+  .banner.err { background: rgba(217, 58, 58, .12); color: var(--danger); }
+  .banner.info { background: var(--card); }
+
+  /* Chọn set */
+  .sheet { position: fixed; inset: 0; background: var(--bg); z-index: 20; display: flex; flex-direction: column; }
+  .sheet-top { padding: 12px; background: var(--bg); position: sticky; top: 0; }
+  .search { width: 100%; border: 0; background: var(--card); border-radius: 12px; padding: 12px 14px; outline: none; font-size: 16px; }
+  .list { overflow-y: auto; padding: 0 12px calc(24px + env(safe-area-inset-bottom)); flex: 1; }
+  .opt { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; border: 0; background: var(--card); padding: 12px 14px; min-height: 56px; border-bottom: 1px solid var(--line); }
+  .opt:first-child { border-radius: 12px 12px 0 0; }
+  .opt:last-child { border-radius: 0 0 12px 12px; border-bottom: 0; }
+  .opt:only-child { border-radius: 12px; }
+  .stock { text-align: right; font-size: 14px; white-space: nowrap; }
+  .stock.low { color: var(--warn); font-weight: 600; }
+  .stock.bad { color: var(--danger); font-weight: 600; }
+
+  /* Kết quả */
+  .done-ico { font-size: 52px; text-align: center; margin: 18px 0 6px; }
+  .res { display: flex; justify-content: space-between; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .res:last-child { border-bottom: 0; }
+  .qty-m { color: var(--danger); font-weight: 700; }
+  .qty-p { color: #1f9d55; font-weight: 700; }
+  .btn { width: 100%; border: 0; border-radius: 12px; padding: 14px; min-height: 50px; font-weight: 600; margin-top: 10px; }
+  .btn.pri { background: var(--accent); color: var(--accent-text); }
+  .btn.sec { background: var(--card); color: var(--link); }
+  .spinner { width: 28px; height: 28px; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; margin: 40px auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Nút gửi dự phòng khi mở ngoài Telegram (trong Telegram dùng MainButton) */
+  .fallback-bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: var(--bg); }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><p class="muted" style="text-align:center">Đang tải…</p></div>
+<div id="fatal" class="hidden"></div>
+
+<!-- Trang chủ -->
+<section id="home" class="hidden">
+  <h1>🌸 Tiệm hoa Chow</h1>
+  <p class="sub" id="hello"></p>
+  <button class="menu-item" data-go="chia"><span class="ico">🎁</span><span class="grow"><div class="t">Chia set</div><div class="muted">Vừa chia nguyên liệu thành bao nhiêu set</div></span><span>›</span></button>
+  <button class="menu-item" data-go="dc"><span class="ico">🥀</span><span class="grow"><div class="t">Điều chỉnh set</div><div class="muted">Hỏng, mất, kiểm kê thiếu/thừa</div></span><span>›</span></button>
+  <button class="menu-item" disabled><span class="ico">📦</span><span class="grow"><div class="t">Nhập nguyên liệu</div><div class="muted">Duyệt phiếu nhập, phí ship</div></span><span class="pill">Sắp có</span></button>
+  <button class="menu-item" disabled><span class="ico">🌸</span><span class="grow"><div class="t">Khai báo đơn bán</div><div class="muted">Khách, ngày giao, chọn set</div></span><span class="pill">Sắp có</span></button>
+  <button class="menu-item" disabled><span class="ico">✅</span><span class="grow"><div class="t">Xác nhận đơn</div><div class="muted">Đã làm, đã giao, đã nhận tiền</div></span><span class="pill">Sắp có</span></button>
+</section>
+
+<!-- Form điều chỉnh kho -->
+<section id="dc" class="hidden">
+  <h1 id="dc-title">🥀 Điều chỉnh set</h1>
+  <p class="sub" id="dc-sub"></p>
+  <div id="dc-error" class="banner err hidden"></div>
+  <div id="dc-phieu" class="card hidden"><div class="label" style="margin-top:0">Chia từ phiếu nhập (không bắt buộc)</div>
+    <input class="note" id="dc-phieu-in" placeholder="VD: PN261031-L2" autocapitalize="characters"></div>
+  <div id="dc-lines"></div>
+  <button class="add" id="dc-add">+ Thêm dòng</button>
+  <p class="tip" id="dc-who"></p>
+</section>
+
+<!-- Kết quả -->
+<section id="done" class="hidden">
+  <div class="done-ico">✅</div>
+  <h1 style="text-align:center" id="done-title">Đã ghi vào kho</h1>
+  <p class="sub" style="text-align:center">Bot đã báo vào nhóm Telegram.</p>
+  <div class="card" id="done-list"></div>
+  <button class="btn pri" id="done-again">Ghi tiếp</button>
+  <button class="btn sec" id="done-close">Đóng</button>
+</section>
+
+<!-- Chọn set -->
+<div id="picker" class="sheet hidden">
+  <div class="sheet-top">
+    <div class="row" style="margin-bottom:10px"><b class="grow">Chọn set</b><button class="icon-btn" id="picker-close" aria-label="Đóng">✕</button></div>
+    <input id="picker-q" class="search" type="search" placeholder="Tìm theo tên, giá hoặc mã…" autocomplete="off">
+  </div>
+  <div class="list" id="picker-list"></div>
+</div>
+
+<div id="fallback" class="fallback-bar hidden"><button class="btn pri" id="fallback-btn" style="margin:0"></button></div>
+
+<script>
+(function () {
+  'use strict';
+  var tg = window.Telegram && window.Telegram.WebApp;
+  var CFG = window.HOA_CONFIG || {};
+  var params = new URLSearchParams(location.search);
+  var DEMO = params.get('demo') === '1';
+  var inTelegram = !!(tg && tg.initData);
+  var $ = function (id) { return document.getElementById(id); };
+
+  var state = { user: null, sets: [], setMap: {}, lyDo: [], lines: [], reqId: null, busy: false, pickFor: -1, mode: 'dc' };
+
+  /* ---------- Tiện ích ---------- */
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function plain(s) { return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd'); }
+  function num(v) { if (v === '' || v == null) return null; var n = parseFloat(String(v).replace(',', '.')); return isFinite(n) ? n : null; }
+  function r3(n) { return Math.round(n * 1000) / 1000; }
+  function fmt(n) { return String(r3(n)).replace('.', ','); }
+  function money(n) { return n == null || n === '' ? '' : String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + 'đ'; }
+  function uuid() { return 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+  function haptic(type) { try { if (type === 'ok' || type === 'error' || type === 'warning') tg.HapticFeedback.notificationOccurred(type === 'ok' ? 'success' : type); else tg.HapticFeedback.selectionChanged(); } catch (e) { } }
+  function show(id) { ['loading', 'fatal', 'home', 'dc', 'done'].forEach(function (x) { $(x).classList.toggle('hidden', x !== id); }); window.scrollTo(0, 0); }
+  function fatal(title, msg) {
+    $('fatal').innerHTML = '<div class="done-ico">⚠️</div><h1 style="text-align:center">' + esc(title) + '</h1><div class="card">' + msg + '</div>';
+    show('fatal'); setMain(null);
+  }
+
+  /* ---------- Gọi API (Apps Script) ---------- */
+  function call(api, payload) {
+    if (DEMO) return demoApi(api, payload);
+    var body = Object.assign({ api: api, initData: tg ? tg.initData : '' }, payload || {});
+    var ctrl = window.AbortController ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 30000);
+    // text/plain để trình duyệt không gửi yêu cầu kiểm tra CORS (Apps Script không trả lời được OPTIONS)
+    return fetch(CFG.API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body), signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { return r.json(); })
+      .catch(function (e) { return { ok: false, net: true, error: e && e.name === 'AbortError' ? 'Máy chủ phản hồi quá lâu. Kiểm tra mạng rồi bấm lại.' : 'Không kết nối được máy chủ. Kiểm tra mạng rồi bấm lại.' }; })
+      .finally(function () { clearTimeout(timer); });
+  }
+
+  /* ---------- Nút chính (MainButton của Telegram, hoặc nút dự phòng) ---------- */
+  var mainHandler = null;
+  function setMain(cfg) {
+    if (tg && tg.MainButton && inTelegram) {
+      var mb = tg.MainButton;
+      if (mainHandler) { mb.offClick(mainHandler); mainHandler = null; }
+      if (!cfg) { mb.hide(); return; }
+      mb.setText(cfg.text);
+      if (cfg.enabled) mb.enable(); else mb.disable();
+      try { mb.setParams({ color: cfg.enabled ? (tg.themeParams.button_color || '#a8385f') : (tg.themeParams.hint_color || '#999999'), text_color: '#ffffff' }); } catch (e) { }
+      if (cfg.loading) mb.showProgress(false); else mb.hideProgress();
+      mainHandler = function () { if (cfg.enabled && !cfg.loading) cfg.onClick(); };
+      mb.onClick(mainHandler); mb.show();
+      return;
+    }
+    var bar = $('fallback'), btn = $('fallback-btn');
+    if (!cfg) { bar.classList.add('hidden'); return; }
+    bar.classList.remove('hidden');
+    btn.textContent = cfg.loading ? 'Đang ghi…' : cfg.text;
+    btn.disabled = !cfg.enabled || !!cfg.loading;
+    btn.style.opacity = btn.disabled ? .5 : 1;
+    btn.onclick = function () { if (cfg.enabled && !cfg.loading) cfg.onClick(); };
+  }
+  function setBack(fn) {
+    if (!tg || !tg.BackButton || !inTelegram) return;
+    tg.BackButton.offClick(setBack._h || function () { });
+    if (!fn) { tg.BackButton.hide(); return; }
+    setBack._h = fn; tg.BackButton.onClick(fn); tg.BackButton.show();
+  }
+
+  /* ---------- Form dùng chung: 'dc' = điều chỉnh set, 'chia' = chia set ---------- */
+  var SIGN = { 'Hỏng': -1, 'Mất': -1, 'Kiểm kê thiếu': -1, 'Kiểm kê thừa': 1, 'Khác': 0 };
+  var isChia = function () { return state.mode === 'chia'; };
+  function newLine() { return isChia() ? { set: '', sl: '', ghiChu: '' } : { set: '', sl: '', lyDo: 'Hỏng', huong: '-', ghiChu: '' }; }
+  function lineQty(ln) {
+    var s = num(ln.sl); if (s == null || s <= 0) return null;
+    if (isChia()) return s;
+    var sg = SIGN[ln.lyDo]; if (sg === 0) sg = ln.huong === '+' ? 1 : -1; return sg * s;
+  }
+  function lineError(ln) {
+    if (!ln.set) return 'Chưa chọn set';
+    var s = num(ln.sl); if (s == null || s <= 0) return 'Nhập số lượng lớn hơn 0';
+    if (isChia() && Math.round(s) !== s) return 'Số set phải là số nguyên';
+    if (!isChia() && ln.lyDo === 'Khác' && !ln.ghiChu.trim()) return 'Lý do "Khác" cần ghi chú';
+    return '';
+  }
+  /** Tồn sau khi áp tất cả các dòng phía trên (cùng set) và dòng này */
+  function stockAfter(idx) {
+    var ln = state.lines[idx], n = state.setMap[ln.set]; if (!n) return null;
+    var t = n.ton;
+    for (var i = 0; i <= idx; i++) { var o = state.lines[i]; if (o.set === ln.set) { var q = lineQty(o); if (q != null) t += q; } }
+    return { before: n.ton, after: r3(t), min: n.min };
+  }
+
+  function renderDc() {
+    var box = $('dc-lines'); box.innerHTML = '';
+    state.lines.forEach(function (ln, i) {
+      var n = state.setMap[ln.set];
+      var card = document.createElement('div'); card.className = 'card';
+      var reason = '';
+      if (!isChia()) {
+        var chips = state.lyDo.map(function (l) {
+          var minus = (SIGN[l] === -1) || (l === 'Khác' && ln.huong === '-');
+          return '<button class="chip' + (ln.lyDo === l ? ' on' : '') + (minus ? ' minus' : '') + '" data-act="lydo" data-v="' + esc(l) + '">' + esc(l) + '</button>';
+        }).join('');
+        reason = '<div class="label">Lý do</div><div class="chips">' + chips + '</div>' + (ln.lyDo === 'Khác' ? '<div class="label">Tăng hay giảm kho?</div><div class="chips">' +
+          '<button class="chip minus' + (ln.huong === '-' ? ' on' : '') + '" data-act="huong" data-v="-">− Giảm kho</button>' +
+          '<button class="chip' + (ln.huong === '+' ? ' on' : '') + '" data-act="huong" data-v="+">+ Tăng kho</button></div>' : '');
+      }
+      var sa = stockAfter(i), after = '';
+      if (sa && lineQty(ln) != null) {
+        var cls = sa.after < 0 ? 'bad' : (sa.min !== '' && sa.min != null && sa.after <= sa.min ? 'low' : '');
+        after = '<div class="after ' + cls + '">Tồn: ' + fmt(sa.before) + ' → <b>' + fmt(sa.after) + '</b> set' +
+          (cls === 'bad' ? ' · âm kho, kiểm tra lại số' : cls === 'low' ? ' · dưới mức tối thiểu (' + fmt(sa.min) + ')' : '') + '</div>';
+      }
+      var needNote = !isChia() && ln.lyDo === 'Khác';
+      card.innerHTML =
+        '<div class="line-head"><span class="line-no grow">DÒNG ' + (i + 1) + '</span>' +
+        (state.lines.length > 1 ? '<button class="icon-btn" data-act="del" aria-label="Xóa dòng">🗑</button>' : '') + '</div>' +
+        '<button class="pick' + (n ? '' : ' empty') + '" data-act="pick"><div class="row"><span class="grow"><div class="name">' +
+        (n ? esc(n.name) : 'Chọn set') + '</div>' + (n ? '<div class="muted small">' + esc(n.code) + (n.gia != null ? ' · ' + money(n.gia) : '') + '</div>' : '') +
+        '</span>' + (n ? '<span class="stock">Tồn ' + fmt(n.ton) + '</span>' : '<span>›</span>') + '</div></button>' +
+        reason +
+        '<div class="label">' + (isChia() ? 'Số set vừa chia' : 'Số set') + '</div><div class="row"><div class="stepper"><button data-act="minus" aria-label="Bớt">−</button>' +
+        '<input data-act="sl" inputmode="' + (isChia() ? 'numeric' : 'decimal') + '" placeholder="0" value="' + esc(ln.sl) + '"><button data-act="plus" aria-label="Thêm">+</button></div>' +
+        '<span class="unit">set</span></div>' + after +
+        '<div class="label">Ghi chú' + (needNote ? ' (bắt buộc)' : '') + '</div>' +
+        '<input class="note' + (needNote && !ln.ghiChu.trim() ? ' need' : '') + '" data-act="note" placeholder="' + (isChia() ? 'VD: đợt hàng Shopee' : 'VD: héo do để gần cửa sổ') + '" value="' + esc(ln.ghiChu) + '">';
+      card.addEventListener('click', function (e) {
+        var b = e.target.closest('[data-act]'); if (!b) return;
+        var act = b.getAttribute('data-act');
+        if (act === 'pick') openPicker(i);
+        else if (act === 'del') { state.lines.splice(i, 1); haptic(); renderDc(); }
+        else if (act === 'lydo') { ln.lyDo = b.getAttribute('data-v'); haptic(); renderDc(); }
+        else if (act === 'huong') { ln.huong = b.getAttribute('data-v'); haptic(); renderDc(); }
+        else if (act === 'minus' || act === 'plus') { var s = num(ln.sl) || 0; s = act === 'plus' ? s + 1 : Math.max(0, s - 1); ln.sl = s ? String(r3(s)) : ''; haptic(); renderDc(); }
+      });
+      card.querySelector('[data-act=sl]').addEventListener('input', function (e) { ln.sl = e.target.value.replace(/[^\d.,]/g, ''); refreshAfter(); });
+      card.querySelector('[data-act=sl]').addEventListener('change', function () { renderDc(); });
+      card.querySelector('[data-act=note]').addEventListener('input', function (e) { ln.ghiChu = e.target.value; e.target.classList.toggle('need', needNote && !ln.ghiChu.trim()); updateMain(); });
+      box.appendChild(card);
+    });
+    updateMain();
+  }
+  // Cập nhật nhẹ khi gõ số (không vẽ lại để bàn phím không bị đóng)
+  var afterTimer = null;
+  function refreshAfter() { updateMain(); clearTimeout(afterTimer); afterTimer = setTimeout(function () { var a = document.activeElement; if (!a || a.getAttribute('data-act') !== 'sl') renderDc(); }, 600); }
+
+  function updateMain() {
+    if ($('dc').classList.contains('hidden')) return;
+    var n = state.lines.length, firstErr = '';
+    state.lines.forEach(function (ln, i) { var e = lineError(ln); if (e && !firstErr) firstErr = 'Dòng ' + (i + 1) + ': ' + e; });
+    setMain({ text: state.busy ? 'Đang ghi…' : firstErr ? firstErr : (isChia() ? 'Ghi chia set (' : 'Ghi điều chỉnh (') + n + ' dòng)', enabled: !firstErr && !state.busy, loading: state.busy, onClick: submitDc });
+  }
+
+  function submitDc() {
+    var neg = !isChia() && state.lines.some(function (ln, i) { var sa = stockAfter(i); return sa && sa.after < 0; });
+    var go = function () {
+      state.busy = true; updateMain(); $('dc-error').classList.add('hidden');
+      if (!state.reqId) state.reqId = uuid();   // giữ nguyên khi bấm lại sau lỗi mạng → máy chủ không ghi trùng
+      var lines = state.lines.map(function (ln) { return isChia() ? { set: ln.set, sl: num(ln.sl), ghiChu: ln.ghiChu.trim() } : { set: ln.set, sl: num(ln.sl), lyDo: ln.lyDo, huong: ln.huong, ghiChu: ln.ghiChu.trim() }; });
+      call(isChia() ? 'chiaSet' : 'dieuChinh', { reqId: state.reqId, lines: lines, phieu: isChia() ? $('dc-phieu-in').value.trim() : '' })
+        .then(function (r) {
+          state.busy = false;
+          if (!r || !r.ok) { haptic('error'); $('dc-error').textContent = (r && r.error) || 'Có lỗi, thử lại.'; $('dc-error').classList.remove('hidden'); window.scrollTo(0, 0); updateMain(); return; }
+          haptic('ok'); state.reqId = null;
+          (r.items || []).forEach(function (it) { if (state.setMap[it.set] && it.ton != null) state.setMap[it.set].ton = it.ton; });
+          $('done-title').textContent = isChia() ? 'Đã ghi chia set' : 'Đã ghi điều chỉnh';
+          $('done-list').innerHTML = (r.items || []).map(function (it) {
+            return '<div class="res"><span class="grow"><div><b>' + esc(it.ten) + '</b></div><div class="muted small">' + esc(it.lyDo || 'Chia set') + (it.ghiChu ? ' · ' + esc(it.ghiChu) : '') + '</div></span>' +
+              '<span style="text-align:right"><div class="' + (it.qty < 0 ? 'qty-m' : 'qty-p') + '">' + (it.qty > 0 ? '+' : '−') + fmt(Math.abs(it.qty)) + ' set</div>' +
+              (it.ton != null ? '<div class="muted small">còn ' + fmt(it.ton) + '</div>' : '') + '</span></div>';
+          }).join('');
+          show('done'); setMain(null); setBack(null);
+        });
+    };
+    if (neg && tg && tg.showConfirm && inTelegram) tg.showConfirm('Có set bị âm kho sau khi ghi. Vẫn ghi?', function (ok) { if (ok) go(); });
+    else go();
+  }
+
+  /* ---------- Chọn set ---------- */
+  function openPicker(i) {
+    state.pickFor = i; $('picker').classList.remove('hidden'); $('picker-q').value = ''; renderPicker('');
+    setTimeout(function () { $('picker-q').focus(); }, 50);
+    setBack(closePicker); setMain(null);
+  }
+  function closePicker() { $('picker').classList.add('hidden'); setBack(state.startParam ? null : goHome); updateMain(); }
+  function renderPicker(q) {
+    var p = plain(q).trim(), list = state.sets.filter(function (n) {
+      return !p || plain(n.name).indexOf(p) >= 0 || plain(n.code).indexOf(p) >= 0 || (n.gia != null && String(n.gia / 1000).indexOf(p.replace(/k$/, '')) === 0);
+    });
+    $('picker-list').innerHTML = list.length ? list.map(function (n) {
+      var cls = n.ton < 0 ? 'bad' : (n.min !== '' && n.min != null && n.ton <= n.min ? 'low' : '');
+      return '<button class="opt" data-code="' + esc(n.code) + '"><span class="grow"><div><b>' + esc(n.name) + '</b></div><div class="muted small">' + esc(n.code) + (n.gia != null ? ' · ' + money(n.gia) : '') + '</div></span>' +
+        '<span class="stock ' + cls + '">' + fmt(n.ton) + ' set' + (cls === 'low' ? '<div class="small">sắp hết</div>' : '') + '</span></button>';
+    }).join('') : '<div class="card muted">' + (state.sets.length ? 'Không thấy set nào khớp "' + esc(q) + '".' : 'Chưa có set nào.') + ' Thêm set mới ở tab <b>Set</b> trên Sheet.</div>';
+  }
+  $('picker-q').addEventListener('input', function (e) { renderPicker(e.target.value); });
+  $('picker-close').addEventListener('click', closePicker);
+  $('picker-list').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-code]'); if (!b) return;
+    state.lines[state.pickFor].set = b.getAttribute('data-code'); haptic(); closePicker(); renderDc();
+  });
+
+  /* ---------- Điều hướng ---------- */
+  function goHome() { show('home'); setMain(null); setBack(null); }
+  function goForm(mode) {
+    state.mode = mode; state.lines = [newLine()]; state.reqId = null;
+    $('dc-error').classList.add('hidden');
+    $('dc-title').textContent = mode === 'chia' ? '🎁 Chia set' : '🥀 Điều chỉnh set';
+    $('dc-sub').innerHTML = mode === 'chia' ? 'Ghi số set vừa chia từ nguyên liệu. Lần đếm đầu tiên cũng ghi ở đây (ghi chú "kiểm kê đầu kỳ").'
+      : 'Set hỏng, mất, kiểm kê lệch. Set dùng cho đơn thì tự trừ khi đơn chuyển sang Đã làm.';
+    $('dc-phieu').classList.toggle('hidden', mode !== 'chia'); $('dc-phieu-in').value = '';
+    $('dc-who').textContent = state.user ? 'Người ghi: ' + state.user.name : '';
+    show('dc'); renderDc(); setBack(state.startParam ? null : goHome);
+  }
+  function goDc() { goForm('dc'); }
+  document.querySelectorAll('[data-go]').forEach(function (b) { b.addEventListener('click', function () { goForm(b.getAttribute('data-go')); }); });
+  $('dc-add').addEventListener('click', function () { state.lines.push(newLine()); haptic(); renderDc(); window.scrollTo(0, document.body.scrollHeight); });
+  $('done-again').addEventListener('click', function () { goForm(state.mode); });
+  $('done-close').addEventListener('click', function () { if (tg && inTelegram) tg.close(); else goHome(); });
+
+  /* ---------- Khởi động ---------- */
+  function start() {
+    if (tg) { try { tg.ready(); tg.expand(); tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) { } }
+    state.startParam = (tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param) || params.get('tgWebAppStartParam') || params.get('screen') || '';
+    if (!DEMO && !inTelegram) return fatal('Mở từ Telegram', 'Form này chỉ dùng được khi mở từ nút trong nhóm Telegram (gõ <b>/form</b> trong nhóm). Muốn xem thử giao diện: thêm <code>?demo=1</code> vào cuối địa chỉ.');
+    if (!DEMO && (!CFG.API_URL || CFG.API_URL.indexOf('https://script.google.com/') !== 0)) return fatal('Chưa cài máy chủ', 'Chưa điền URL Web app vào file <b>config.js</b>.');
+    call('bootstrap').then(function (r) {
+      if (!r || !r.ok) {
+        if (r && r.code === 'forbidden') return fatal('Chưa có quyền', esc(r.error));
+        return fatal('Không tải được dữ liệu', esc((r && r.error) || 'Lỗi không rõ') + '<p class="muted small">Đóng form và mở lại. Nếu vẫn lỗi, chụp màn hình gửi người cài bot.</p>');
+      }
+      state.user = r.user; state.lyDo = r.lyDo || Object.keys(SIGN);
+      state.sets = (r.sets || []).slice().sort(function (a, b) { return a.name.localeCompare(b.name, 'vi') || (a.gia || 0) - (b.gia || 0); });
+      state.setMap = {}; state.sets.forEach(function (n) { state.setMap[n.code] = n; });
+      $('hello').textContent = 'Xin chào, ' + r.user.name + '.';
+      if (state.startParam === 'dc' || state.startParam === 'chia') goForm(state.startParam); else goHome();
+    });
+  }
+
+  /* ---------- Chế độ xem thử (?demo=1): dữ liệu giả, không ghi gì ---------- */
+  function demoApi(api, payload) {
+    var sets = [{ code: 'S01', name: 'Hồng trắng 70k', gia: 70000, ton: 6, min: 3 }, { code: 'S02', name: 'Hồng trắng 100k', gia: 100000, ton: 2, min: 2 },
+      { code: 'S03', name: 'Xanh trắng 150k', gia: 150000, ton: 4, min: '' }, { code: 'S04', name: 'Mix 250k', gia: 250000, ton: 1, min: 1 }];
+    return new Promise(function (ok) {
+      setTimeout(function () {
+        if (api === 'bootstrap') return ok({ ok: true, user: { id: '1', name: 'Xem thử' }, sets: sets, lyDo: Object.keys(SIGN) });
+        if (api === 'dieuChinh' || api === 'chiaSet') return ok({ ok: true, items: payload.lines.map(function (l) {
+          var n = state.setMap[l.set], q = api === 'chiaSet' ? l.sl : (SIGN[l.lyDo] || (l.huong === '+' ? 1 : -1)) * l.sl;
+          return { set: l.set, ten: n.name, qty: q, lyDo: l.lyDo || '', ghiChu: l.ghiChu, ton: r3(n.ton + q) }; }) });
+        ok({ ok: false, error: 'demo' });
+      }, 400);
+    });
+  }
+
+  start();
+})();
+</script>
+</body>
+</html>
